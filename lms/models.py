@@ -1,5 +1,6 @@
 from django.db import models
 
+from config import settings
 from users.models import NULLABLE
 
 
@@ -31,3 +32,20 @@ class Lesson(models.Model):
         verbose_name = 'урок'
         verbose_name_plural = 'уроки'
         ordering = ('course', 'title', )
+
+
+class Payments(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь', **NULLABLE)
+    payment_date = models.DateField(auto_now_add=True, verbose_name='дата оплаты', **NULLABLE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='payments', **NULLABLE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='payments', **NULLABLE)
+    payment_sum =
+    payment_type =
+
+    def __str__(self):
+        return f"{self.user} - {self.payment_date}"
+
+    class Meta:
+        verbose_name = 'платеж'
+        verbose_name_plural = 'платежи'
+        ordering = ('payment_date', 'user')
