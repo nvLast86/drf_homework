@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Course, Lesson
+from .models import Course, Lesson, Payments
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -20,3 +20,8 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'preview', 'description', 'all_lessons', 'lessons_count')
 
 
+class PaymentsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payments
+        fields = '__all__'
