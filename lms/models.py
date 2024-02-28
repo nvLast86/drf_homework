@@ -59,3 +59,13 @@ class Payments(models.Model):
         verbose_name = 'платеж'
         verbose_name_plural = 'платежи'
         ordering = ('payment_date', 'user')
+
+
+class SubscriptionCourse(models.Model):
+    status = models.BooleanField(default=True, verbose_name='статус подписки')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс')
+
+    class Meta:
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
