@@ -1,8 +1,10 @@
 from django_filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, generics
-from .models import Course, Lesson, Payments
-from .serializers import CourseSerializer, LessonSerializer, PaymentsSerializer
+from rest_framework.permissions import IsAuthenticated
+
+from .models import Course, Lesson, Payments, SubscriptionCourse
+from .serializers import CourseSerializer, LessonSerializer, PaymentsSerializer, SubscriptionCourseSerializer
 from .permissions import IsStaff, IsOwner, IsOwnerOrIsStaff
 
 
@@ -65,3 +67,14 @@ class PaymentsListView(generics.ListAPIView):
     filterset_fields = ['payment_type', 'lesson', 'course']
     ordering_fields = ['payment_date']
 
+
+class SubscriptionCreateAPIView(generics.CreateAPIView):
+    serializer_class = SubscriptionCourseSerializer
+    queryset = SubscriptionCourse.objects.all()
+    permission_classes = [IsAuthenticated]
+
+
+class SubscriptionUpdateView(generics.UpdateAPIView):
+    serializer_class = SubscriptionCourseSerializer
+    queryset = SubscriptionCourse.objects.all()
+    permission_classes = [IsAuthenticated]
