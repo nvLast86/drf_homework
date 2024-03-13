@@ -1,12 +1,18 @@
 from django_filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.exceptions import APIException
+from rest_framework.generics import get_object_or_404
 
 from .models import Course, Lesson, Payments, SubscriptionCourse
 from .paginators import LessonPaginator
-from .serializers import CourseSerializer, LessonSerializer, PaymentsSerializer, SubscriptionCourseSerializer
+from .serializers import (CourseSerializer, LessonSerializer, PaymentsSerializer, PaymentsCreateSerializer,
+                          SubscriptionCourseSerializer)
 from .permissions import IsStaff, IsOwner, IsOwnerOrIsStaff
+
+from .services import stripe_create_session, stripe_retrieve_session
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -70,6 +76,58 @@ class PaymentsListView(generics.ListAPIView):
     filterset_fields = ['payment_type', 'lesson', 'course']
     ordering_fields = ['payment_date']
 
+
+class PaymentCreateAPIView(generics.CreateAPIView):
+    """Создание платежа"""
+    serializer_class = PaymentsCreateSerializer
+
+    def post(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        try:
+            course = serializer.validated_data['course']
+            user = request.user
+
+            session = stripe_create_session(course, user)
+            payment = Payments.objects.create(
+                course=course,
+                user=user,
+                session_id=session.id
+            )
+            payment_serializer = PaymentCreateSerializer(payment)
+            return Response(payment_serializer.data, status=status.HTTP_201_CREATED)
+
+        except Payments.DoesNotExist:
+            raise APIException(detail='Платеж не найден')
+
+
+class PaymentRetrieveAPIView(generics.RetrieveAPIView):
+    """Просмотр детальной информации о платеже"""
+    serializer_class = PaymentsDetailSerializer
+    queryset = Payments.objects.all()
+
+    def get_object(self):
+        """Меняет статус оплаты, если оплачено"""
+        payment = get_object_or_404(self.get_queryset(), pk=self.kwargs['pk'])
+        if payment.session_id:
+            session = stripe_retrieve_session(payment.session_id)
+            if session.payment_status in ['paid', 'complete']:
+                payment.is_paid = True
+                payment.save()
+        return payment
+
+
+class PaymentUpdateAPIView(generics.UpdateAPIView):
+    """Обновление платежа"""
+    serializer_class = PaymentsSerializer
+    queryset = Payments.objects.all()
+
+
+class PaymentDestroyAPIView(generics.DestroyAPIView):
+    """Удаление платежа"""
+    queryset = Payments.objects.all()
 
 class SubscriptionCreateAPIView(generics.CreateAPIView):
     serializer_class = SubscriptionCourseSerializer

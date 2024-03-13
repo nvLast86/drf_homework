@@ -156,5 +156,4 @@ CSRF_TRUSTED_ORIGINS = [
     "https://read-and-write.example.com",
 ]
 
-STRIPE_PUBLISHABLE_KEY = ''
-STRIPE_SECRET_KEY = ''
+STRIPE_API_KEY = ''
