@@ -61,6 +61,7 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
         session = stripe_retrieve_session(payment.session_id)
         return session.url
 
+
 class SubscriptionCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionCourse

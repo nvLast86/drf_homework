@@ -9,7 +9,7 @@ from rest_framework.generics import get_object_or_404
 from .models import Course, Lesson, Payments, SubscriptionCourse
 from .paginators import LessonPaginator
 from .serializers import (CourseSerializer, LessonSerializer, PaymentsSerializer, PaymentsCreateSerializer,
-                          SubscriptionCourseSerializer)
+                          PaymentDetailSerializer, SubscriptionCourseSerializer)
 from .permissions import IsStaff, IsOwner, IsOwnerOrIsStaff
 
 from .services import stripe_create_session, stripe_retrieve_session
@@ -96,7 +96,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
                 user=user,
                 session_id=session.id
             )
-            payment_serializer = PaymentCreateSerializer(payment)
+            payment_serializer = PaymentsCreateSerializer(payment)
             return Response(payment_serializer.data, status=status.HTTP_201_CREATED)
 
         except Payments.DoesNotExist:
@@ -105,7 +105,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
 
 class PaymentRetrieveAPIView(generics.RetrieveAPIView):
     """Просмотр детальной информации о платеже"""
-    serializer_class = PaymentsDetailSerializer
+    serializer_class = PaymentDetailSerializer
     queryset = Payments.objects.all()
 
     def get_object(self):
