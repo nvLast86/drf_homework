@@ -44,6 +44,7 @@ class Payments(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='payments', **NULLABLE)
     session_id = models.CharField(max_length=150, editable=False, verbose_name='id сессии', **NULLABLE)
     payment_sum = models.IntegerField(verbose_name='Сумма оплаты', **NULLABLE)
+    is_paid = models.BooleanField(default=False, verbose_name='статус платежа')
 
     def __str__(self):
         return f"{self.user} - {self.payment_date}"
