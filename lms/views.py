@@ -13,6 +13,7 @@ from .serializers import (CourseSerializer, LessonSerializer, PaymentsSerializer
 from .permissions import IsStaff, IsOwner, IsOwnerOrIsStaff
 
 from .services import stripe_create_session, stripe_retrieve_session
+from lms.tasks import send_notification_update_course
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -34,6 +35,11 @@ class CourseViewSet(viewsets.ModelViewSet):
         new_course = serializer.save()
         new_course.owner = self.request.user
         new_course.save()
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        send_notification_update_course.delay(instance.pk)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -128,6 +134,7 @@ class PaymentUpdateAPIView(generics.UpdateAPIView):
 class PaymentDestroyAPIView(generics.DestroyAPIView):
     """Удаление платежа"""
     queryset = Payments.objects.all()
+
 
 class SubscriptionCreateAPIView(generics.CreateAPIView):
     serializer_class = SubscriptionCourseSerializer
